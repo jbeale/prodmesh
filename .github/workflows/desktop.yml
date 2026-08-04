@@ -32,6 +32,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40
 
+    # The repository default is read-only, so publishing a release 403s with
+    # "Resource not accessible by integration" — which reads like a token or
+    # scope problem and is neither. Declared per job rather than repo-wide, so
+    # it is version-controlled and visible next to the step that needs it.
+    # Only tag builds actually publish; branch builds pass --publish never.
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
         with:
