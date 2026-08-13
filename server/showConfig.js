@@ -104,5 +104,6 @@ function validate(config) {
     endItemId: id(config.endItemId, 'endItemId'),
     map,
     videos,
+    servicesLiveFromProPresenter: Boolean(config.servicesLiveFromProPresenter),
   };
 }

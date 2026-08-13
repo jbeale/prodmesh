@@ -849,6 +849,7 @@ export interface ShowConfig {
    *  a string = pinned to that broadcast. A channel pre-creates one broadcast
    *  per service, so 8:00 and 9:30 are different videos on one plan. */
   videos: Record<string, string | null>;
+  servicesLiveFromProPresenter?: boolean;
 }
 
 /** A live or scheduled broadcast on the room's channel, for the pin picker. */
@@ -1115,6 +1116,7 @@ export interface ShowState {
   startedAt?: number;
   follow?: boolean;
   ppConnected?: boolean | null;
+  servicesLive?: { state: string; itemId?: string | null; error?: string | null } | null;
   current?: ShowCurrent;
   timer?: PpTimer | null;
   spl?: SplState | null;

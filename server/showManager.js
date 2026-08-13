@@ -67,6 +67,7 @@ function showState(roomId) {
     startedAt: show.startedAt,
     follow: show.follow,
     ppConnected: show.ppConnected,
+    servicesLive: show.servicesLive ?? null,
     current: show.current,
   };
 }
@@ -495,10 +496,12 @@ async function beginShow(roomId, planId, timeId, startedAt, { startedLogging = f
   timeline.ensure(`${planId}__${timeId}`, { roomId, planId, timeId });
 
   let items = [];
+  let serviceType = null;
   try {
     const plan = await findPlan(room, planId);
     if (plan) {
       const st = { id: plan.serviceTypeId, name: plan.serviceTypeName };
+      serviceType = st;
       items = await pco.getPlanItems(st, plan.id);
       // Label the timeline now, while the plan is easy to resolve — the
       // history page reads these long after the plan has left "upcoming".
@@ -536,11 +539,13 @@ async function beginShow(roomId, planId, timeId, startedAt, { startedLogging = f
     timeId,
     startedAt,
     items,
+    serviceType,
     itemById: new Map(items.map((i) => [i.id, i])),
     current: { itemId: null, itemIndex: null, itemName: null, startedAt: null, slideIndex: null, slideCount: null },
     follow: true,
     ppConnected: null,
     config: showConfig.getConfig(roomId, planId), // per-event automation settings
+    servicesLive: null,
     startedLogging, // true when the dashboard turned Smaart's SPL logging on
     abort: new AbortController(),
   };
@@ -665,7 +670,8 @@ function onPoll(show, s) {
 function applyCurrent(show, itemId, fallbackName, index) {
   const pc = show.itemById.get(itemId);
   const name = pc?.title ?? fallbackName ?? null;
-  if (show.current.itemId !== itemId) show.current.startedAt = Date.now();
+  const changed = show.current.itemId !== itemId;
+  if (changed) show.current.startedAt = Date.now();
   show.current.itemId = itemId;
   show.current.itemIndex = index ?? null;
   show.current.itemName = name;
@@ -674,6 +680,30 @@ function applyCurrent(show, itemId, fallbackName, index) {
     { roomId: show.roomId, planId: show.planId, timeId: show.timeId },
     { itemId, itemName: name, itemIndex: index, plannedLength: pc?.length ?? null },
   );
+  if (changed) syncServicesLive(show, itemId);
+}
+
+// ProPresenter is the source of truth when this explicit event option is on.
+// One item transition creates one serialized Services LIVE sync; no dashboard
+// being open is required, and a PP poll can never create competing requests.
+function syncServicesLive(show, itemId) {
+  if (!show.config?.servicesLiveFromProPresenter || !show.serviceType || !itemId) return;
+  const key = `${show.planId}:${itemId}`;
+  if (show.servicesLive?.key === key) return;
+  show.servicesLive = { key, state: 'syncing', itemId, error: null };
+  pco.syncServicesLive(show.serviceType, show.planId, itemId)
+    .then((result) => {
+      if (!shows.has(show.roomId)) return;
+      show.servicesLive = { key, ...result, error: null };
+      publishShow(show.roomId);
+    })
+    .catch((err) => {
+      if (!shows.has(show.roomId)) return;
+      // Allow a later PP transition to retry. The error is observable in the
+      // show state instead of silently pretending Services LIVE advanced.
+      show.servicesLive = { key: '', state: 'error', itemId, error: String(err.message ?? err) };
+      publishShow(show.roomId);
+    });
 }
 
 /** A live show picks up config edits made on the Event Detail page. */
@@ -681,6 +711,7 @@ export function refreshConfig(roomId, planId) {
   const show = shows.get(roomId);
   if (show && show.planId === planId) {
     show.config = showConfig.getConfig(roomId, planId);
+    if (show.current.itemId) syncServicesLive(show, show.current.itemId);
     // A pin edited mid-service takes effect now, not at the next show.
     restartStreamWatcher(roomId);
     publishShow(roomId);

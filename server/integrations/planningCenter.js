@@ -80,6 +80,16 @@ async function pcGet(path) {
   }
 }
 
+async function pcPost(path, body = undefined) {
+  const auth = Buffer.from(`${getSecret('planningCenter.appId')}:${getSecret('planningCenter.secret')}`).toString('base64');
+  try {
+    const res = await fetch(`${BASE}${path}`, { method: 'POST', headers: { Authorization: `Basic ${auth}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}), signal: AbortSignal.timeout(TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`Planning Center ${path} → HTTP ${res.status}`);
+    report('planningCenter', true);
+    return res.status === 204 ? null : res.json().catch(() => null);
+  } catch (err) { report('planningCenter', false, String(err.message ?? err)); throw err; }
+}
+
 // ── Normalizers (JSON:API → our clean shapes) — field names verified live ─────
 function normalizePlan(serviceType, data) {
   const a = data.attributes ?? {};
@@ -338,6 +348,48 @@ export function getPlanTeamMembers(serviceType, planId) {
       };
     });
   });
+}
+
+/** Read and advance Services LIVE. This is deliberately only called by the
+ * explicit per-event automation setting, never by a passive dashboard view. */
+export async function syncServicesLive(serviceType, planId, targetItemId) {
+  if (!isConfigured()) throw new Error('Planning Center is not connected');
+  const prefix = `/service_types/${pcId(serviceType.id, 'service type id')}/plans/${pcId(planId, 'plan id')}`;
+  let body = await pcGet(`${prefix}/live?include=controller,current_item_time,next_item_time`);
+  let live = Array.isArray(body.data) ? body.data[0] : body.data;
+  if (!live) {
+    await pcPost(`${prefix}/live`, { data: { type: 'Live' } });
+    body = await pcGet(`${prefix}/live?include=controller,current_item_time,next_item_time`);
+    live = Array.isArray(body.data) ? body.data[0] : body.data;
+  }
+  if (!live) throw new Error('Planning Center did not create a Services LIVE session');
+  const links = live.links ?? {};
+  const path = (name) => typeof links[name] === 'string' ? links[name].replace(BASE, '') : null;
+  const controller = live.relationships?.controller?.data;
+  if (!controller) {
+    const take = path('toggle_control');
+    if (!take) throw new Error('Planning Center did not allow Services LIVE control');
+    await pcPost(take);
+    return syncServicesLive(serviceType, planId, targetItemId);
+  }
+  const included = new Map((body.included ?? []).map((row) => [`${row.type}:${row.id}`, row]));
+  const currentTimeRef = live.relationships?.current_item_time?.data;
+  const currentTime = currentTimeRef ? included.get(`${currentTimeRef.type}:${currentTimeRef.id}`) : null;
+  const currentItemId = currentTime?.relationships?.item?.data?.id ?? null;
+  if (String(currentItemId) === String(targetItemId)) return { state: 'synced', itemId: targetItemId };
+  // Item order is authoritative. Never move backward automatically: an
+  // accidental PP selection must not rewind Services LIVE mid-service.
+  const items = await getPlanItems(serviceType, planId);
+  const at = items.findIndex((item) => String(item.id) === String(currentItemId));
+  const target = items.findIndex((item) => String(item.id) === String(targetItemId));
+  if (target < 0) throw new Error('Matched item is not in this Planning Center plan');
+  const steps = at < 0 ? target + 1 : target - at;
+  if (steps < 0) return { state: 'ahead', itemId: currentItemId };
+  if (steps > 20) throw new Error('Services LIVE target is too far from the current item');
+  const next = path('go_to_next_item');
+  if (!next) throw new Error('Planning Center did not provide a next-item action');
+  for (let i = 0; i < steps; i += 1) await pcPost(next);
+  return { state: 'synced', itemId: targetItemId };
 }
 
 /** Series artwork + plan notes for the Event Detail page.

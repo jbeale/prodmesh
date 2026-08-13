@@ -31,7 +31,7 @@ function broadcastLabel(b: YouTubeBroadcast) {
 const AUTO = '';
 const NONE = '\u0000none';
 
-const EMPTY: ShowConfig = { startItemId: null, endItemId: null, map: {}, videos: {} };
+const EMPTY: ShowConfig = { startItemId: null, endItemId: null, map: {}, videos: {}, servicesLiveFromProPresenter: false };
 
 // Per-event show automation (one config per event, shared by all its service
 // times): which PC item autostarts the show, which one auto-completes it at
@@ -150,6 +150,12 @@ export function ShowConfigWidget({
         </span>
         {itemSelect(draft.startItemId, (v) => setDraft((d) => ({ ...d, startItemId: v })), 'Never (start manually)')}
       </div>
+
+      <label className="showcfg__row">
+        <span className="showcfg__label"><Radio size={13} /> ProPresenter controls Services LIVE</span>
+        <input type="checkbox" checked={Boolean(draft.servicesLiveFromProPresenter)} onChange={(e) => setDraft((d) => ({ ...d, servicesLiveFromProPresenter: e.target.checked }))} />
+      </label>
+      <p className="widget__hint">When enabled, ProdMesh takes Planning Center Services LIVE control and advances it as ProPresenter changes presentations. It never moves Services LIVE backward automatically.</p>
 
       <div className="showcfg__row">
         <span className="showcfg__label">
@@ -304,7 +310,7 @@ export function ShowConfigWidget({
         <button className="btn btn--primary btn--sm" onClick={save}>
           Save automation
         </button>
-        {(persisted?.startItemId || persisted?.endItemId || overrideCount > 0) && (
+        {(persisted?.startItemId || persisted?.endItemId || persisted?.servicesLiveFromProPresenter || overrideCount > 0) && (
           <button className="btn btn--ghost btn--sm" onClick={clear}>
             Clear
           </button>
