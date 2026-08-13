@@ -188,12 +188,12 @@ export function ViewEditor({
           <X size={14} />
         </button>
 
-        {/* Only where the widget declares a range. Most stay one size, so a
-            handle on them would only offer the bad version of two designs. */}
+        {/* Every widget can grow in both directions within the shared layout
+            range; the server applies the exact same bounds on save. */}
         {resizable && (
           <span
             className="viewcell__resize"
-            title={`Drag to resize (${widgetMin(def!).h}–${widgetMax(def!).h} rows)`}
+            title={`Drag to resize (${widgetMin(def!).w}–${widgetMax(def!).w} columns, ${widgetMin(def!).h}–${widgetMax(def!).h} rows)`}
             aria-hidden
             {...resizeHandlers(placement, boundsFor(placement.type))}
           />

@@ -125,26 +125,16 @@ test('validateView takes a scale from a short list, defaulting to actual size', 
   assert.throws(() => validateView(view({ scale: 99 })), /scale must be one of/);
 });
 
-test('validateView holds a placement to the size its widget allows', () => {
-  // Run of Show is the one widget with a range, because its list scrolls:
-  // extra rows are more of the service, not more whitespace.
-  assert.doesNotThrow(() => validateView(view({ widgets: [at('run-of-show', 0, 0, 2, 5)] })));
+test('validateView gives every widget adjustable width and height', () => {
+  assert.doesNotThrow(() => validateView(view({ widgets: [at('run-of-show', 0, 0, 6, 5)] })));
   assert.throws(() => validateView(view({ widgets: [at('run-of-show', 0, 0, 2, 6)] })),
-    /between 2×3 and 2×5 — got 2×6/);
+    /between 2×3 and 6×5 — got 2×6/);
   assert.throws(() => validateView(view({ widgets: [at('run-of-show', 0, 0, 2, 2)] })),
-    /between 2×3 and 2×5/);
-  // Everything else is one size, and says so rather than quietly accepting.
-  assert.throws(() => validateView(view({ widgets: [at('loudness', 0, 0, 4, 2)] })),
-    /must be 2×1 — got 4×2/);
-  // The first range that is 2D — both axes buy the same thing, more of the
-  // room's devices on screen, so either is a legitimate way to stretch it.
-  assert.doesNotThrow(() => validateView(view({ widgets: [at('room-health', 0, 0, 3, 1)] })));
-  assert.doesNotThrow(() => validateView(view({ widgets: [at('room-health', 0, 0, 1, 3)] })));
-  assert.doesNotThrow(() => validateView(view({ widgets: [at('room-health', 0, 0, 3, 3)] })));
-  assert.throws(() => validateView(view({ widgets: [at('room-health', 0, 0, 4, 1)] })),
-    /between 1×1 and 3×3 — got 4×1/);
-  assert.throws(() => validateView(view({ widgets: [at('room-health', 0, 0, 1, 4)] })),
-    /between 1×1 and 3×3 — got 1×4/);
+    /between 2×3 and 6×5/);
+  assert.doesNotThrow(() => validateView(view({ widgets: [at('loudness', 0, 0, 4, 2)] })));
+  assert.doesNotThrow(() => validateView(view({ widgets: [at('room-health', 0, 0, 6, 5)] })));
+  assert.throws(() => validateView(view({ widgets: [at('room-health', 0, 0, 7, 1)] })),
+    /between 1×1 and 6×5 — got 7×1/);
 });
 
 test('validateView lets a display hold every read-only widget', () => {

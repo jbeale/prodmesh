@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { widgetRegistry, widgetTypes, isWidgetType } from './registry';
 import {
-  spanColumns, widgetAllowedOn, widgetIsUnique, widgetMax, widgetMin, type WidgetSpan,
+  MAX_WIDGET_SIZE, spanColumns, widgetAllowedOn, widgetIsUnique, widgetMax, widgetMin, type WidgetSpan,
 } from './types';
 import { GRID, fits } from '../lib/gridLayout';
 // The backend is plain JS with no declarations, and turning on allowJs to
@@ -119,10 +119,10 @@ describe('the registry contract', () => {
       expect(server.size, `${type} size`).toEqual(def.size);
       expect(server.unique, `${type} unique`).toBe(widgetIsUnique(def));
       expect(server.display, `${type} display`).toBe(widgetAllowedOn(def, 'display'));
-      // min/max are absent server-side when a widget is one fixed size, which
-      // is what widgetMin/widgetMax fall back to.
+      // Every widget shares a practical layout maximum; minima remain
+      // widget-specific so content never starts squeezed.
       expect(server.min ?? def.size, `${type} min`).toEqual(widgetMin(def));
-      expect(server.max ?? def.size, `${type} max`).toEqual(widgetMax(def));
+      expect(MAX_WIDGET_SIZE, `${type} max`).toEqual(widgetMax(def));
     }
   });
 });

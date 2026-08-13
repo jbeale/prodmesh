@@ -255,6 +255,7 @@ export const WIDGET_TYPES = new Map([
 ]);
 
 const MAX_WIDGETS_PER_VIEW = 40; // same cap as tiles-per-room
+const MAX_WIDGET_SIZE = { w: 6, h: 5 }; // dashboard width × practical height
 
 // A short list, not a free number: this is "how far away is the screen", and
 // a slider inviting 1.37 would only ever produce blurry half-pixel type.
@@ -315,7 +316,9 @@ export function validateView(input) {
     // refuses out-of-range handles; this is the door that matters, because a
     // stored layout is data and data arrives from anywhere.
     const min = def.min ?? def.size;
-    const max = def.max ?? def.size;
+    // Widgets may expand up to the dashboard's full width and five rows tall.
+    // The display grid still rejects anything that cannot fit its 3×3 canvas.
+    const max = MAX_WIDGET_SIZE;
     if (box.w < min.w || box.h < min.h || box.w > max.w || box.h > max.h) {
       throw new Error(
         `Widget "${type}" must be ${sizeRange(min, max)} — got ${box.w}×${box.h}`,

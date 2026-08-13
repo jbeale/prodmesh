@@ -85,17 +85,11 @@ export interface WidgetDef {
    *  display) — what it gets when first placed. */
   size: WidgetSize;
 
-  /**
-   * How far it may be stretched, if at all. Both default to `size`, i.e. one
-   * authored size and no handle.
-   *
-   * Most widgets stay fixed on purpose: a 1×1 loudness meter and a 6×5 one are
-   * two designs, not one design scaled, and a resize handle would only produce
-   * the bad version of both. A range is for a widget whose content genuinely
-   * continues past its edge — Run of Show, whose order of service SCROLLS, so
-   * more height is more list rather than more whitespace.
-   */
+  /** Optional minimum size. A widget always starts at `size`, but every
+   * widget can be made larger in either direction by the layout editor. */
   minSize?: WidgetSize;
+  /** Retained for compatibility with existing layouts. The shared layout
+   * maximum below is now used so every widget has the same resize freedom. */
   maxSize?: WidgetSize;
 
   /**
@@ -151,8 +145,12 @@ export type WidgetType =
 export const widgetAllowedOn = (def: WidgetDef, kind: ViewKind): boolean =>
   (def.kinds ?? ['dashboard', 'display']).includes(kind);
 
+export const MAX_WIDGET_SIZE: WidgetSize = { w: 6, h: 5 };
+
 export const widgetMin = (def: WidgetDef): WidgetSize => def.minSize ?? def.size;
-export const widgetMax = (def: WidgetDef): WidgetSize => def.maxSize ?? def.size;
+// A dashboard is six columns wide. Displays are smaller, and their grid
+// validation naturally limits a resize to what fits on that display.
+export const widgetMax = (_def: WidgetDef): WidgetSize => MAX_WIDGET_SIZE;
 
 /** Can this widget be stretched at all, on either axis? */
 export const widgetResizable = (def: WidgetDef): boolean => {

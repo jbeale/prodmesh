@@ -158,22 +158,20 @@ describe('ViewEditor', () => {
 
   it('the grip label carries the position, so it is not a mystery button', async () => {
     render(<Harness initial={[{ id: 'a', type: 'viewers', x: 4, y: 2, w: 2, h: 1, config: {} }]} />);
-    expect(screen.getByRole('button', { name: 'Move Live viewers, column 5, row 3' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Move Live viewers, column 5, row 3, 2 by 1' })).toBeInTheDocument();
   });
 
   describe('stretching', () => {
     const runOfShow = (h = 3): ViewPlacement =>
       ({ id: 'a', type: 'run-of-show', x: 0, y: 0, w: 2, h, config: {} });
 
-    it('offers a grip only where the widget declares a range', () => {
+    it('offers a resize grip for every widget', () => {
       const { container, unmount } = render(<Harness initial={[runOfShow()]} />);
       expect(container.querySelector('.viewcell__resize')).not.toBeNull();
       unmount();
 
-      // Everything else is one authored size, so a handle would only offer the
-      // bad version of two designs.
       render(<Harness initial={[{ id: 'b', type: 'loudness', x: 0, y: 0, w: 2, h: 1, config: {} }]} />);
-      expect(document.querySelector('.viewcell__resize')).toBeNull();
+      expect(document.querySelector('.viewcell__resize')).not.toBeNull();
     });
 
     it('shift+arrow stretches within the range and says so', async () => {
@@ -190,7 +188,7 @@ describe('ViewEditor', () => {
       await user.keyboard('{Shift>}{ArrowDown}{/Shift}');
       expect(at('run-of-show').style.gridRow).toBe('1 / span 5');
 
-      // 5 is the ceiling — and it SAYS so rather than doing nothing, which is
+      // 5 is the height ceiling — and it SAYS so rather than doing nothing, which is
       // indistinguishable from a dead key.
       await user.keyboard('{Shift>}{ArrowDown}{/Shift}');
       expect(at('run-of-show').style.gridRow).toBe('1 / span 5');
@@ -270,14 +268,14 @@ describe('ViewEditor', () => {
       vi.restoreAllMocks();
     });
 
-    it('width is not offered when only height varies', async () => {
+    it('allows width as well as height to vary', async () => {
       const user = userEvent.setup();
       render(<Harness initial={[runOfShow()]} />);
       const grip = screen.getByRole('button', { name: /Move Run of Show/ });
       grip.focus();
       await user.keyboard('{Enter}{Shift>}{ArrowRight}{/Shift}');
-      expect(at('run-of-show').style.gridColumn).toBe('1 / span 2');
-      expect(status()).toBe('Run of Show cannot be resized further.');
+      expect(at('run-of-show').style.gridColumn).toBe('1 / span 3');
+      expect(status()).toBe('Run of Show is now 3 by 3.');
     });
   });
 
