@@ -31,7 +31,11 @@ function broadcastLabel(b: YouTubeBroadcast) {
 const AUTO = '';
 const NONE = '\u0000none';
 
-const EMPTY: ShowConfig = { startItemId: null, endItemId: null, map: {}, videos: {}, servicesLiveFromProPresenter: false };
+const EMPTY: ShowConfig = {
+  startItemId: null, endItemId: null, map: {}, videos: {},
+  servicesLiveFromProPresenter: false, servicesLiveStartMode: 'item',
+  servicesLiveStartItemId: null, servicesLiveStartTimeId: null,
+};
 
 // Per-event show automation (one config per event, shared by all its service
 // times): which PC item autostarts the show, which one auto-completes it at
@@ -132,7 +136,7 @@ export function ShowConfigWidget({
     <Widget
       title="Show Automation"
       meta={
-        persisted?.startItemId || persisted?.endItemId ? (
+        persisted?.startItemId || persisted?.endItemId || persisted?.servicesLiveFromProPresenter ? (
           <span className="svc__badge svc__badge--live">● armed</span>
         ) : (
           <span className="svc__badge svc__badge--mock">○ manual</span>
@@ -155,7 +159,46 @@ export function ShowConfigWidget({
         <span className="showcfg__label"><Radio size={13} /> ProPresenter controls Services LIVE</span>
         <input type="checkbox" checked={Boolean(draft.servicesLiveFromProPresenter)} onChange={(e) => setDraft((d) => ({ ...d, servicesLiveFromProPresenter: e.target.checked }))} />
       </label>
-      <p className="widget__hint">When enabled, ProdMesh takes Planning Center Services LIVE control and advances it as ProPresenter changes presentations. It never moves Services LIVE backward automatically.</p>
+      {draft.servicesLiveFromProPresenter && (
+        <>
+          <p className="widget__hint">ProdMesh takes Planning Center Services LIVE control and advances it as ProPresenter changes presentations. It never moves Services LIVE backward automatically, and does not require Run of Show to be started.</p>
+          <div className="showcfg__row">
+            <span className="showcfg__label"><Radio size={12} /> Start Services LIVE</span>
+            <SelectField
+              className="showcfg__select"
+              value={draft.servicesLiveStartMode ?? 'item'}
+              onChange={(e) => setDraft((d) => ({ ...d, servicesLiveStartMode: e.target.value as 'item' | 'service-time' }))}
+            >
+              <option value="item">When PP lands on an item</option>
+              <option value="service-time">At a service time</option>
+            </SelectField>
+          </div>
+          {(draft.servicesLiveStartMode ?? 'item') === 'item' ? (
+            <div className="showcfg__row">
+              <span className="showcfg__label"><Play size={12} /> Services LIVE trigger</span>
+              {itemSelect(
+                draft.servicesLiveStartItemId ?? draft.startItemId,
+                (v) => setDraft((d) => ({ ...d, servicesLiveStartItemId: v })),
+                'Choose a ProPresenter-mapped item',
+              )}
+            </div>
+          ) : (
+            <div className="showcfg__row">
+              <span className="showcfg__label"><Radio size={12} /> Service time</span>
+              <SelectField
+                className="showcfg__select"
+                value={draft.servicesLiveStartTimeId ?? ''}
+                onChange={(e) => setDraft((d) => ({ ...d, servicesLiveStartTimeId: e.target.value || null }))}
+              >
+                <option value="">Choose a service time</option>
+                {serviceTimes.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}{t.startsAt ? ` — ${new Date(t.startsAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}` : ''}</option>
+                ))}
+              </SelectField>
+            </div>
+          )}
+        </>
+      )}
 
       <div className="showcfg__row">
         <span className="showcfg__label">

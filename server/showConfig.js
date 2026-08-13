@@ -105,5 +105,10 @@ function validate(config) {
     map,
     videos,
     servicesLiveFromProPresenter: Boolean(config.servicesLiveFromProPresenter),
+    // Kept separate from Run of Show's start item: Services LIVE is useful
+    // without a dashboard show, and can instead begin at a service time.
+    servicesLiveStartMode: config.servicesLiveStartMode === 'service-time' ? 'service-time' : 'item',
+    servicesLiveStartItemId: id(config.servicesLiveStartItemId, 'servicesLiveStartItemId'),
+    servicesLiveStartTimeId: id(config.servicesLiveStartTimeId, 'servicesLiveStartTimeId'),
   };
 }

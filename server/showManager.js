@@ -750,7 +750,14 @@ export async function nextArmedEvent(room, now) {
   plans.sort((a, b) => String(a.sortDate ?? '').localeCompare(String(b.sortDate ?? '')));
   for (const plan of plans) {
     const config = showConfig.getConfig(room.id, plan.id);
-    if (!config?.startItemId) continue;
+    const liveTrigger = config?.servicesLiveFromProPresenter && (
+      (config.servicesLiveStartMode === 'service-time' && config.servicesLiveStartTimeId) ||
+      (config.servicesLiveStartMode !== 'service-time' && (config.servicesLiveStartItemId || config.startItemId))
+    );
+    // This watcher serves both dashboard-show autostart and the independent
+    // Services LIVE bridge. The latter deliberately does not need a Run of
+    // Show start item at all.
+    if (!config?.startItemId && !liveTrigger) continue;
     const st = { id: plan.serviceTypeId, name: plan.serviceTypeName };
     const times = await pco.getPlanTimes(st, plan.id).catch(() => []);
     const window = armWindow(times);
@@ -765,6 +772,7 @@ export async function nextArmedEvent(room, now) {
 async function autostartLoop(roomId, signal) {
   let prevItemId = null; // last mapped PC item; null = no baseline (never trigger)
   let armedPlanId = null; // for state-change logging only
+  let servicesLiveRunning = false;
   while (!signal.aborted) {
     // Connectivity AND the room itself are edited live, so eligibility is
     // per-cycle, not per-boot: a room gains (or loses) autostart within a
@@ -786,6 +794,7 @@ async function autostartLoop(roomId, signal) {
     }
     if ((armed?.plan.id ?? null) !== armedPlanId) {
       armedPlanId = armed?.plan.id ?? null;
+      servicesLiveRunning = false;
       console.log(`[autostart] ${roomId}: ${armedPlanId ? `armed for plan ${armedPlanId}` : 'disarmed'}`);
     }
     if (!armed) {
@@ -820,6 +829,34 @@ async function autostartLoop(roomId, signal) {
             /* conflict — someone started it manually first */
           }
         }
+      }
+      // Services LIVE has its own start condition. It is intentionally
+      // independent of startShow(): a room can run without the Run of Show
+      // widget open, or without Run of Show at all. Once started, every
+      // forward ProPresenter presentation change advances Services LIVE.
+      const liveEnabled = Boolean(armed.config.servicesLiveFromProPresenter);
+      const mode = armed.config.servicesLiveStartMode ?? 'item';
+      const triggerItemId = armed.config.servicesLiveStartItemId ?? armed.config.startItemId;
+      const triggerTime = armed.times.find((t) => t.id === armed.config.servicesLiveStartTimeId);
+      const startsAtTime = mode === 'service-time' && triggerTime?.startsAt &&
+        Date.now() >= new Date(triggerTime.startsAt).getTime();
+      const startsAtItem = mode !== 'service-time' && triggerItemId &&
+        itemId === triggerItemId && prevItemId !== null && prevItemId !== itemId;
+      const startsServicesLive = liveEnabled && !servicesLiveRunning && (startsAtTime || startsAtItem);
+      if (startsServicesLive) {
+        servicesLiveRunning = true;
+        console.log(`[services-live] ${roomId}: bridge started for ${armed.plan.id} (${mode})`);
+      }
+      if (liveEnabled && servicesLiveRunning && itemId && (startsServicesLive || itemId !== prevItemId) && !shows.has(roomId)) {
+        pco.syncServicesLive(
+          { id: armed.plan.serviceTypeId, name: armed.plan.serviceTypeName },
+          armed.plan.id,
+          itemId,
+        ).catch((err) => {
+          // Keep watching after a transient PCO failure. A later PP change
+          // retries automatically, rather than requiring a page refresh.
+          console.warn(`[services-live] ${roomId}: ${err?.message ?? err}`);
+        });
       }
       // PP quirk (verified live): playlist_item reads null for a beat right
       // after an item trigger, until the next slide action. Only a MAPPED item

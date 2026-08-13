@@ -850,6 +850,10 @@ export interface ShowConfig {
    *  per service, so 8:00 and 9:30 are different videos on one plan. */
   videos: Record<string, string | null>;
   servicesLiveFromProPresenter?: boolean;
+  /** The condition that gives this event's Services LIVE bridge permission to run. */
+  servicesLiveStartMode?: 'item' | 'service-time';
+  servicesLiveStartItemId?: string | null;
+  servicesLiveStartTimeId?: string | null;
 }
 
 /** A live or scheduled broadcast on the room's channel, for the pin picker. */
