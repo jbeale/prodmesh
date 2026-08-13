@@ -86,6 +86,14 @@ test('mapActiveToItemId honors manual overrides over index mapping', () => {
   assert.equal(mapActiveToItemId(items, { index: 0, name: 'Pre Service' }, map), 'a');
 });
 
+test('mapActiveToItemId does not auto-match a Planning Center item excluded by None', () => {
+  const items = [{ id: 'a', title: 'Pre Service' }, { id: 'b', title: 'No PP presentation' }];
+  assert.equal(
+    mapActiveToItemId(items, { index: 1, name: 'No PP presentation' }, { b: { disabled: true } }),
+    null,
+  );
+});
+
 test('pickPlaylistForPlan matches by plan date, title as tiebreak', async () => {
   const { pickPlaylistForPlan } = await import('./integrations/proPresenter.js');
   const playlists = [

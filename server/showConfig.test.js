@@ -45,3 +45,10 @@ test('Services LIVE can be armed independently of Run of Show', () => {
   assert.equal(saved.servicesLiveStartTimeId, 'time-9am');
   assert.equal(saved.startItemId, null, 'Run of Show remains optional');
 });
+
+test('a mapping can explicitly exclude an item from automatic matching', () => {
+  const saved = cfg.setConfig('r-none', 'p-none', {
+    map: { 'pc-no-presentation': { disabled: true } },
+  });
+  assert.deepEqual(saved.map, { 'pc-no-presentation': { disabled: true } });
+});

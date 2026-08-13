@@ -73,7 +73,7 @@ export function mapIndexToItemId(items, active) {
 
 /**
  * Mapping with per-event manual overrides layered on top (Event Detail →
- * Show Config): overrides = { '<pc item id>': { ppIndex, ppName } }. An
+ * Show Config): overrides = { '<pc item id>': { ppIndex, ppName } | { disabled: true } }. An
  * override wins by playlist index, with a tolerant-name rescue for when the
  * playlist was re-pushed and indices shifted but names survived.
  */
@@ -82,6 +82,7 @@ export function mapActiveToItemId(items, active, overrides = null) {
   if (overrides) {
     for (const [pcId, pp] of Object.entries(overrides)) {
       if (pp == null) continue;
+      if (pp.disabled) continue;
       if (pp.ppIndex === active.index || (pp.ppName && namesMatch(pp.ppName, active.name))) {
         return pcId;
       }

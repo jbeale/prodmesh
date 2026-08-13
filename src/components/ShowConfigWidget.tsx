@@ -143,18 +143,6 @@ export function ShowConfigWidget({
         )
       }
     >
-      <p className="widget__hint">
-        The show follows the ProPresenter operator — pre-service slides can loop between services
-        without tripping anything. Applies to every service time of this event.
-      </p>
-
-      <div className="showcfg__row">
-        <span className="showcfg__label">
-          <Play size={13} /> Start when PP lands on
-        </span>
-        {itemSelect(draft.startItemId, (v) => setDraft((d) => ({ ...d, startItemId: v })), 'Never (start manually)')}
-      </div>
-
       <label className="showcfg__row">
         <span className="showcfg__label"><Radio size={13} /> ProPresenter controls Services LIVE</span>
         <input type="checkbox" checked={Boolean(draft.servicesLiveFromProPresenter)} onChange={(e) => setDraft((d) => ({ ...d, servicesLiveFromProPresenter: e.target.checked }))} />
@@ -316,18 +304,27 @@ export function ShowConfigWidget({
                 plan from Planning Center first, or map with care.
               </p>
             )}
-            {trackable.map((it) => (
+            {trackable.map((it) => {
+              const mapping = draft.map[it.id];
+              const mappingValue = mapping && 'disabled' in mapping
+                ? NONE
+                : mapping && 'ppIndex' in mapping
+                  ? mapping.ppIndex
+                  : '';
+              return (
               <div key={it.id} className="showcfg__maprow">
                 <span className="showcfg__pcitem">{it.title}</span>
                 <SelectField
                   className="showcfg__select"
-                  value={draft.map[it.id]?.ppIndex ?? ''}
+                  value={mappingValue}
                   onChange={(e) =>
                     setDraft((d) => ({
                       ...d,
                       map: {
                         ...d.map,
-                        [it.id]: e.target.value
+                        [it.id]: e.target.value === NONE
+                          ? { disabled: true }
+                          : e.target.value
                           ? {
                               ppIndex: Number(e.target.value),
                               ppName: ppItems.find((p) => p.index === Number(e.target.value))?.name ?? null,
@@ -338,6 +335,7 @@ export function ShowConfigWidget({
                   }
                 >
                   <option value="">Auto</option>
+                  <option value={NONE}>None — no ProPresenter presentation</option>
                   {ppItems.map((p) => (
                     <option key={p.index} value={p.index}>
                       {p.name}
@@ -345,7 +343,8 @@ export function ShowConfigWidget({
                   ))}
                 </SelectField>
               </div>
-            ))}
+              );
+            })}
           </div>
         ))}
 

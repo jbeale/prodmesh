@@ -843,7 +843,7 @@ export interface ChecklistItem {
 export interface ShowConfig {
   startItemId: string | null; // PP lands on this PC item → show autostarts
   endItemId: string | null; // last slide of this PC item → show auto-completes
-  map: Record<string, { ppIndex: number; ppName: string | null } | null>;
+  map: Record<string, { ppIndex: number; ppName: string | null } | { disabled: true } | null>;
   /** YouTube broadcast per SERVICE TIME, tri-state. Key ABSENT = auto (record
    *  whatever is live); `null` = not streamed (record nothing, don't look);
    *  a string = pinned to that broadcast. A channel pre-creates one broadcast
