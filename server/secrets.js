@@ -103,11 +103,17 @@ export const SECRET_GROUPS = [
       + 'Reads public viewer counts only — restrict the key to that API.',
     fields: [{ path: 'youtube.apiKey', label: 'API key' }],
   },
+  { id: 'restream', label: 'Restream', hint: 'OAuth app credentials from Restream Developers. ProdMesh stores and refreshes account tokens automatically after you connect.', fields: [
+    { path: 'restream.clientId', label: 'Client ID' }, { path: 'restream.clientSecret', label: 'Client Secret' },
+  ] },
 ];
 
 export const SECRET_KEYS = SECRET_GROUPS.flatMap((g) => g.fields.map((f) => ({ ...f, group: g.id })));
+// OAuth tokens are written only by the callback/refresh flow. They are never
+// exposed in Settings, even as masked fields, and never accepted from its UI.
+const INTERNAL_SECRET_KEYS = new Set(['restream.accessToken', 'restream.refreshToken']);
 
-const isSecretKey = (path) => SECRET_KEYS.some((k) => k.path === path);
+const isSecretKey = (path) => SECRET_KEYS.some((k) => k.path === path) || INTERNAL_SECRET_KEYS.has(path);
 
 /**
  * What is configured — never what it is. `env: true` means an environment

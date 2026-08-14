@@ -13,10 +13,28 @@ import * as branding from '../branding.js';
 import * as secrets from '../secrets.js';
 import * as setup from '../setup.js';
 import * as pco from '../integrations/planningCenter.js';
+import * as restream from '../integrations/restream.js';
 import { roomStatus } from '../connectivityStatus.js';
 import { requirePermission, permissionRequired, auditSuccess } from '../httpAuth.js';
 
 const router = express.Router();
+const restreamStates = new Map();
+const restreamCallback = (req) => `${req.protocol}://${req.get('host')}/api/integrations/restream/callback`;
+
+router.get('/api/integrations/restream/connect', requirePermission('*'), (req, res) => {
+  try { const state = crypto.randomUUID(); restreamStates.set(state, Date.now()); res.redirect(restream.authorizeUrl(restreamCallback(req), state)); }
+  catch (err) { res.status(400).json({ error: String(err.message ?? err) }); }
+});
+router.get('/api/integrations/restream/callback', async (req, res) => {
+  const state = String(req.query.state ?? ''); const issued = restreamStates.get(state); restreamStates.delete(state);
+  if (!issued || Date.now() - issued > 10 * 60_000 || !req.query.code) return res.status(400).send('Invalid or expired Restream authorization. Please connect again from ProdMesh Settings.');
+  try { await restream.exchangeCode(String(req.query.code), restreamCallback(req)); res.redirect('/settings?restream=connected'); }
+  catch (err) { res.status(502).send(`Restream authorization failed: ${String(err.message ?? err)}`); }
+});
+router.get('/api/integrations/restream/status', async (_req, res) => {
+  try { res.json(await restream.status()); }
+  catch (err) { res.status(502).json({ connected: false, status: 'offline', error: String(err.message ?? err) }); }
+});
 
 // ── First-run setup ───────────────────────────────────────────────────────────
 

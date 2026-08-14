@@ -814,6 +814,9 @@ function SecretsPanel() {
                 </div>
               ))}
             </dl>
+            {group.id === 'restream' && (
+              <p className="settings__muted integration__redirect">Redirect URL: <code>{`${window.location.origin}/api/integrations/restream/callback`}</code></p>
+            )}
             <button className="btn btn--sm" onClick={() => setEditing(group)}>Edit</button>
           </div>
         ))}

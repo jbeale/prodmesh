@@ -1050,6 +1050,8 @@
 .integration__state--off { color: var(--text-faint); background: rgba(127, 127, 127, 0.14); }
 
 .integration__fields { margin: 0; display: grid; gap: 8px; width: 100%; }
+.integration__redirect { width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+.integration__redirect code { white-space: normal; }
 
 .integration__field dt {
   font-size: 0.72rem;

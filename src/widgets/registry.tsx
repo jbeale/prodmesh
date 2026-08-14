@@ -20,6 +20,7 @@ import { SlidesLeftWidget } from './SlidesLeftWidget';
 import { LoudnessWidget } from './LoudnessWidget';
 import { LoudnessTrendWidget } from './LoudnessTrendWidget';
 import { ViewersWidget } from './ViewersWidget';
+import { RestreamWidget } from './RestreamWidget';
 import { ProPresenterControls, ProPresenterPlaylist, ProPresenterSlides, ProPresenterTimers, SlideNotes } from './ProPresenterWidgets';
 import { PlanningCenterSchedule, PlanningCenterService, PlanningCenterTeams, PlanningCenterTimers } from './PlanningCenterWidgets';
 import type { WidgetDef, WidgetType } from './types';
@@ -59,6 +60,7 @@ export const widgetRegistry: Record<WidgetType, WidgetDef> = {
     size: { w: 1, h: 1 },
     defaultSpan: 'third',
   },
+  restream: { title: 'Restream', description: 'Restream broadcast state and connected destinations.', component: RestreamWidget, size: { w: 2, h: 2 }, defaultSpan: 'third' },
 
   'run-of-show': {
     title: 'Run of Show',

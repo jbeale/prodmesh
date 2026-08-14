@@ -221,6 +221,7 @@ export const WIDGET_TYPES = new Map([
   ['loudness', { unique: true, display: true, size: { w: 2, h: 1 } }],
   ['loudness-trend', { unique: true, display: true, size: { w: 2, h: 1 } }],
   ['viewers', { unique: true, display: true, size: { w: 1, h: 1 } }],
+  ['restream', { unique: true, display: true, size: { w: 2, h: 2 } }],
   ['run-of-show', {
     unique: true, display: false,
     size: { w: 2, h: 3 }, min: { w: 2, h: 3 }, max: { w: 2, h: 5 },

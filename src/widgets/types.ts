@@ -123,6 +123,7 @@ export type WidgetType =
   | 'loudness'
   | 'loudness-trend'
   | 'viewers'
+  | 'restream'
   | 'run-of-show'
   | 'now-next'
   | 'room-mode'
