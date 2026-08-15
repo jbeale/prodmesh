@@ -1,0 +1,69 @@
+{
+  "projectId": "4c909ca2-fce8-452a-8fbe-eee44ecd763d",
+  "shape": "package",
+  "pkg": "church-production-dashboard",
+  "globalName": "ProdMesh",
+  "srcDir": "src",
+  "tsconfig": "./.design-sync/tsconfig.sync.json",
+  "cssEntry": ".design-sync/.cache/styles.flat.css",
+  "extraFonts": [
+    "node_modules/@fontsource-variable/ibm-plex-sans/index.css",
+    "node_modules/@fontsource/ibm-plex-mono/400.css",
+    "node_modules/@fontsource/ibm-plex-mono/500.css"
+  ],
+  "provider": {
+    "component": "PreviewRouter"
+  },
+  "componentSrcMap": {
+    "Accordion": "src/components/Accordion.tsx",
+    "Checkbox": "src/components/Checkbox.tsx",
+    "Clock": "src/components/Clock.tsx",
+    "HelpDrawer": "src/components/HelpDrawer.tsx",
+    "HelpIcon": "src/components/HelpDrawer.tsx",
+    "HelpTip": "src/components/HelpTip.tsx",
+    "SelectField": "src/components/SelectField.tsx",
+    "Sparkline": "src/components/Sparkline.tsx",
+    "Widget": "src/components/Widget.tsx",
+    "WidgetGrid": "src/components/Widget.tsx",
+    "ColorInput": "src/components/form/ColorInput.tsx",
+    "EditorSection": "src/components/form/EditorSection.tsx",
+    "Field": "src/components/form/Field.tsx",
+    "FormRow": "src/components/form/FormRow.tsx"
+  },
+  "dtsPropsFor": {
+    "Accordion": "title: string;\n  /** Shown beside the title while collapsed \u2014 a count, a status, a summary line. */\n  summary?: React.ReactNode;\n  defaultOpen?: boolean;\n  className?: string;\n  children: React.ReactNode;",
+    "Checkbox": "/** Any other <input> attribute is forwarded to the underlying checkbox. */\n  label: React.ReactNode;\n  checked?: boolean;\n  defaultChecked?: boolean;\n  disabled?: boolean;\n  name?: string;\n  onChange?: React.ChangeEventHandler<HTMLInputElement>;\n  className?: string;",
+    "Clock": "/** Short weekday/month names and tighter type, for a narrow slot. */\n  compact?: boolean;",
+    "HelpDrawer": "open: boolean;\n  onClose: () => void;",
+    "HelpIcon": "/** HelpIcon is the lucide BookOpen icon, re-exported so callers need not\n   *  import lucide directly. Takes the usual lucide icon props. */\n  size?: number | string;\n  color?: string;\n  strokeWidth?: number | string;\n  className?: string;",
+    "HelpTip": "/** The tip itself. Also the button's aria-label, so write it as a sentence. */\n  text: string;\n  /** Which side the bubble opens on. Default 'above'. */\n  place?: 'above' | 'below';",
+    "SelectField": "/** Wraps a NATIVE <select>; any other <select> attribute is forwarded.\n   *  Pass <option> elements as children. */\n  value?: string | number;\n  defaultValue?: string | number;\n  disabled?: boolean;\n  name?: string;\n  onChange?: React.ChangeEventHandler<HTMLSelectElement>;\n  className?: string;\n  children?: React.ReactNode;",
+    "Sparkline": "points: number[];\n  /** Describes the curve for screen readers \u2014 an SVG shape is otherwise mute. */\n  label: string;\n  className?: string;\n  /** Fix the vertical scale instead of fitting it to the data. Auto-fit is\n   *  right when only the SHAPE matters; it is wrong wherever a threshold\n   *  exists, because a half-unit wobble fills the box and reads as a climb. */\n  bounds?: { min: number; max: number };\n  /** Thresholds in the same units as `points`; the curve is tinted above each. */\n  bands?: { from: number; tone: 'warn' | 'over' }[];",
+    "Widget": "title?: string;\n  /** Badges or actions in the header's right corner. */\n  meta?: React.ReactNode;\n  /** Columns on the 12-col grid at >=880px; always full width below. */\n  span?: 'half' | 'third' | 'two-thirds' | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;\n  className?: string;\n  children: React.ReactNode;",
+    "WidgetGrid": "/** The 12-column grid Widgets sit in. Reflows to one column below 880px. */\n  children: React.ReactNode;",
+    "ColorInput": "/** A themed <input type=\"color\">; any other <input> attribute is forwarded. */\n  value?: string;\n  defaultValue?: string;\n  disabled?: boolean;\n  name?: string;\n  onChange?: React.ChangeEventHandler<HTMLInputElement>;\n  className?: string;",
+    "EditorSection": "title: string;\n  help?: string;\n  /** Right-hand slot in the header \u2014 a connectivity chip, a count. */\n  status?: React.ReactNode;\n  saveLabel: string;\n  /** From useDraft(): the dirty/busy/error state machine every editor shares. */\n  form: {\n    dirty: boolean;\n    busy: boolean;\n    err: string;\n    savedFlash: boolean;\n    submit: () => Promise<void>;\n  };\n  children: React.ReactNode;",
+    "Field": "label: string;\n  /** Supplementary detail \u2014 rendered as a HelpTip rather than body copy. */\n  help?: string;\n  width?: 'grow' | 'md' | 'sm' | 'xs';\n  /** A single control. Field generates the id and wires the label to it. */\n  children: React.ReactElement<{ id?: string }>;",
+    "FormRow": "/** Draw the row as a raised card rather than a bare row. */\n  card?: boolean;\n  children: React.ReactNode;"
+  },
+  "guidelinesGlob": [
+    "docs/UI_TEXT.md",
+    "docs/ARCHITECTURE.md"
+  ],
+  "overrides": {
+    "HelpDrawer": {
+      "cardMode": "single",
+      "viewport": "900x620"
+    },
+    "Widget": {
+      "cardMode": "column"
+    },
+    "WidgetGrid": {
+      "cardMode": "column"
+    },
+    "ColorInput": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}

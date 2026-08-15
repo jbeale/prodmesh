@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.app.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "virtual:help-content": ["./shims/help-content.ts"]
+    }
+  },
+  "include": ["../src", "./entry.tsx", "./shims"]
+}

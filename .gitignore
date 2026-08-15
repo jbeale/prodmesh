@@ -31,3 +31,8 @@ desktop/.build/
 desktop/release/
 desktop/node_modules/
 site/
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
