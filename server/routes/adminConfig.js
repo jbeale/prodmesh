@@ -110,16 +110,14 @@ router.put('/api/secrets', requirePermission('*'), (req, res) => {
 // booleans only — never anything derived from the secret itself.
 router.get('/api/secrets/check', requirePermission('*'), async (_req, res) => {
   if (!pco.isConfigured()) return res.json({ planningCenter: null });
-  const serviceTypes = [...new Set(
-    Object.values(rooms).flatMap((r) => (r.planningCenter?.serviceTypes ?? []).map((st) => st.id)),
-  )];
-  if (!serviceTypes.length) return res.json({ planningCenter: null });
   try {
     pco.clearCache();
-    await pco.getUpcomingPlans({ id: serviceTypes[0], name: 'check' }, 1);
+    await pco.checkCredentials();
     res.json({ planningCenter: true });
-  } catch {
-    res.json({ planningCenter: false });
+  } catch (err) {
+    // This is safe to disclose: it contains only the endpoint and HTTP status,
+    // never either side of the Basic-auth credential pair.
+    res.json({ planningCenter: false, reason: String(err.message ?? err) });
   }
 });
 

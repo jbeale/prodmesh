@@ -129,15 +129,15 @@ describe('ViewEditor', () => {
       { id: 'b', type: 'loudness', x: 2, y: 0, w: 2, h: 1, config: {} },
     ]} />);
 
-    const grip = screen.getByRole('button', { name: /Move (Loudness|Smaart Decibel Meter)/ });
+    const grip = screen.getByRole('button', { name: /Move (Loudness|Smaart Decibel Meter|Audio Decibel Meter)/ });
     grip.focus();
     await user.keyboard('{Enter}');
     expect(grip).toHaveAttribute('aria-pressed', 'true');
-    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter) grabbed\. Use the arrow keys\.$/);
+    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter|Audio Decibel Meter) grabbed\. Use the arrow keys\.$/);
 
     await user.keyboard('{ArrowDown}');
     expect(at('loudness').style.gridRow).toBe('2 / span 1');
-    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter) at column 3, row 2\.$/);
+    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter|Audio Decibel Meter) at column 3, row 2\.$/);
 
     // Now free to move left, because it dropped out of Countdown's row.
     await user.keyboard('{ArrowLeft}{ArrowLeft}');
@@ -147,25 +147,25 @@ describe('ViewEditor', () => {
     // doing nothing, which is indistinguishable from a dead key.
     await user.keyboard('{ArrowUp}');
     expect(at('loudness').style.gridRow).toBe('2 / span 1');
-    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter) cannot move there\.$/);
+    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter|Audio Decibel Meter) cannot move there\.$/);
 
     // Off the left edge is refused too.
     await user.keyboard('{ArrowLeft}');
     expect(at('loudness').style.gridColumn).toBe('1 / span 2');
-    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter) cannot move there\.$/);
+    expect(status()).toMatch(/^(Loudness|Smaart Decibel Meter|Audio Decibel Meter) cannot move there\.$/);
   });
 
   it('Escape drops the grab, so the arrow keys stop moving things', async () => {
     const user = userEvent.setup();
     render(<Harness initial={[{ id: 'a', type: 'loudness', x: 0, y: 0, w: 2, h: 1, config: {} }]} />);
 
-    const grip = screen.getByRole('button', { name: /Move (Loudness|Smaart Decibel Meter)/ });
+    const grip = screen.getByRole('button', { name: /Move (Loudness|Smaart Decibel Meter|Audio Decibel Meter)/ });
     grip.focus();
     await user.keyboard('{Enter}{ArrowRight}');
     expect(at('loudness').style.gridColumn).toBe('2 / span 2');
 
     await user.keyboard('{Escape}');
-    expect(screen.getByRole('button', { name: /Move (Loudness|Smaart Decibel Meter)/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: /Move (Loudness|Smaart Decibel Meter|Audio Decibel Meter)/ })).toHaveAttribute('aria-pressed', 'false');
     await user.keyboard('{ArrowRight}');
     expect(at('loudness').style.gridColumn).toBe('2 / span 2');
   });

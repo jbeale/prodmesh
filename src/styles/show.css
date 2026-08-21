@@ -186,6 +186,27 @@ span.ros-track__status {
 .resi__summary strong { color: var(--text); font-size: 1.05rem; }
 .resi__summary span { font-size: .82rem; text-align: right; }
 
+/* Restream has a single broadcast state, with an audience total and the
+   individual destinations beneath it. The player URL is Restream's own
+   channel embed URL; cover art remains useful for destinations without one. */
+.restream { gap: 9px; }
+.restream__audience { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
+.restream__audience svg { color: var(--ok); flex: none; }
+.restream__audience strong { font-size: clamp(1.5rem, 4vw, 2.35rem); line-height: 1; font-variant-numeric: tabular-nums; }
+.restream__audience span { min-width: 0; color: var(--text-dim); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.restream__preview { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius); background: #000; }
+.restream__preview iframe, .restream__preview img { display: block; width: 100%; height: 100%; border: 0; }
+.restream__preview img { object-fit: cover; }
+.restream__channels { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.restream__channels li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; min-width: 0; padding: 6px 7px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-tile); font-size: .8rem; }
+.restream__destination-mark, .restream__destination-fallback { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 4px; object-fit: contain; }
+.restream__destination-mark { background: #fff; }
+.restream__destination-fallback { background: var(--bg-raised); color: var(--text-dim); font-size: .68rem; font-weight: 700; text-transform: uppercase; }
+.restream__channels li > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.restream__channels li > strong { font-variant-numeric: tabular-nums; }
+.restream__channels a { display: grid; color: var(--text-dim); }
+.restream__channels a:hover { color: var(--accent); }
+
 /* Live SPL meter. The card, the header row and the big number all come from
    .wgt now; what is left here is the meter itself. */
 .ros-spl__bar {

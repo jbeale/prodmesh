@@ -8,6 +8,7 @@ import {
 } from '../api';
 import { useChurch } from '../layout/church';
 import { SelectField } from './SelectField';
+import { PasswordInput } from './PasswordInput';
 
 export function IdentityDialog({
   stationRequired,
@@ -111,7 +112,7 @@ export function IdentityDialog({
             </label>
             <label className="identity__field">
               <span>PIN</span>
-              <input className="field mono" type="password" inputMode="numeric" autoComplete="current-password" value={pin} onChange={(e) => setPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && login()} />
+              <PasswordInput className="field mono" inputMode="numeric" autoComplete="current-password" value={pin} onChange={(e) => setPin(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && login()} />
             </label>
             <button className="btn btn--primary identity__submit" disabled={busy || !username || !pin} onClick={login}>
               Log in to this station

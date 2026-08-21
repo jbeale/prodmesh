@@ -552,7 +552,7 @@ export async function saveSecrets(updates: Record<string, string>): Promise<{ se
 
 /** Do the stored credentials actually work? null = not configured. */
 export const checkIntegrations = () =>
-  getJson<{ planningCenter: boolean | null }>('/api/secrets/check');
+  getJson<{ planningCenter: boolean | null; reason?: string }>('/api/secrets/check');
 
 export type IntegrationEnabled = Record<string, boolean>;
 export const getEnabledIntegrations = () => getJson<{ enabled: IntegrationEnabled }>('/api/integrations');
@@ -1306,6 +1306,8 @@ export interface WidgetConfigJson {
   autoplay?: boolean;
   muted?: boolean;
   playerControls?: boolean;
+  destinationLinks?: boolean;
+  videoPreview?: boolean;
   aspectRatio?: '16:9' | '4:3' | '1:1';
 }
 

@@ -14,6 +14,8 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { HelpTip } from '../components/HelpTip';
+import { IntegrationBrand, type IntegrationId } from '../components/IntegrationBrand';
+import { PasswordInput } from '../components/PasswordInput';
 import { SETUP_COMPLETE_EVENT } from '../layout/SetupGate';
 import { buildChurch } from '../lib/topology';
 import {
@@ -31,6 +33,7 @@ import {
   clearLogo,
   getSecrets,
   saveSecrets,
+  setIntegrationEnabled,
   type SecretGroup,
   type SetupState,
 } from '../api';
@@ -369,7 +372,7 @@ function PinStep({ mode, onDone }: { mode: 'create' | 'unlock' | 'done'; onDone:
         <p className="setup__lede">This install already has an admin PIN. Enter it to pick up where setup left off.</p>
         <label className="lfield">
           <span>Admin PIN</span>
-          <input className="field" type="password" autoFocus value={pin}
+          <PasswordInput className="field" autoFocus value={pin}
             onChange={(e) => setPin(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && pin) unlock(); }} />
         </label>
@@ -391,12 +394,12 @@ function PinStep({ mode, onDone }: { mode: 'create' | 'unlock' | 'done'; onDone:
       <p className="setup__lede">One PIN protects this install's settings. Pick something your tech leads can share.</p>
       <label className="lfield">
         <span>Admin PIN</span>
-        <input className="field" type="password" autoComplete="new-password" autoFocus value={pin}
+        <PasswordInput className="field" autoComplete="new-password" autoFocus value={pin}
           onChange={(e) => setPin(e.target.value)} />
       </label>
       <label className="lfield">
         <span>Confirm PIN</span>
-        <input className="field" type="password" autoComplete="new-password" value={confirm}
+        <PasswordInput className="field" autoComplete="new-password" value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && pin && confirm) create(); }} />
       </label>
@@ -611,17 +614,57 @@ const GROUP_HELP: Record<string, string> = {
   slack: 'Create an app at api.slack.com, give it chat:write, install it to your workspace, then invite the bot to the channel you name here.',
 };
 
+const SETUP_INTEGRATION_GROUPS: Array<{ label: string; integrations: IntegrationId[] }> = [
+  { label: 'Planning & scheduling', integrations: ['planning-center'] },
+  { label: 'Presentation & show control', integrations: ['propresenter', 'companion'] },
+  { label: 'Audio', integrations: ['open-sound-meter', 'smaart', 'prodmesh-rta'] },
+  { label: 'Video & streaming', integrations: ['youtube', 'restream', 'resi'] },
+  { label: 'Communication', integrations: ['slack', 'captions', 'prodcom'] },
+];
+
+const SECRET_GROUP_INTEGRATION: Record<string, IntegrationId> = {
+  planningCenter: 'planning-center',
+  slack: 'slack',
+  youtube: 'youtube',
+  restream: 'restream',
+  resi: 'resi',
+};
+
+const SETUP_INTEGRATION_IDS = SETUP_INTEGRATION_GROUPS.flatMap((group) => group.integrations);
+
 function IntegrationsStep({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
   const [groups, setGroups] = useState<SecretGroup[] | null>(null);
   const [draft, setDraft] = useState<Record<string, string>>({});
+  const [selected, setSelected] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(SETUP_INTEGRATION_IDS.map((id) => [id, false])),
+  );
+  const [choosing, setChoosing] = useState(true);
+  const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     getSecrets().then((r) => setGroups(r.secrets)).catch(() => setGroups([]));
+    setLoaded(true);
   }, []);
 
   const filled = Object.values(draft).some((v) => v.trim() !== '');
+  const selectedCredentialGroups = groups?.filter((group) => selected[SECRET_GROUP_INTEGRATION[group.id]]) ?? [];
+  const selectedCount = Object.values(selected).filter(Boolean).length;
+
+  const saveSelection = async (continueToCredentials: boolean) => {
+    setBusy(true);
+    setErr(null);
+    try {
+      await Promise.all(SETUP_INTEGRATION_IDS.map((id) => setIntegrationEnabled(id, selected[id] === true)));
+      if (continueToCredentials) setChoosing(false);
+      else onNext();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const save = async () => {
     if (!filled) return onNext();
@@ -638,24 +681,55 @@ function IntegrationsStep({ onBack, onNext }: { onBack: () => void; onNext: () =
 
   return (
     <Step
-      title="Connect your services"
-      help="Every one of these is optional and can be added later in Admin → General. ProdMesh runs without them; you just won't see service plans or get Slack alerts."
+      title={choosing ? 'Choose your integrations' : 'Add credentials'}
+      help={choosing
+        ? 'Start with only the services your team uses. You can skip this now, enable more later, or change any choice in Admin → Integrations.'
+        : 'Only credentials for the services you selected are shown below. You can skip any of these and finish configuring them later in Admin → Integrations.'}
       footer={
-        <>
+        choosing ? <>
           <button className="btn btn--ghost" onClick={onBack} disabled={busy}><ArrowLeft size={16} /> Back</button>
-          <button className="btn btn--ghost" onClick={onNext} disabled={busy}>Skip for now</button>
+          <button className="btn btn--ghost" onClick={() => saveSelection(false)} disabled={busy || !loaded}>Skip for now</button>
+          <button className="btn btn--primary" disabled={busy || !loaded} onClick={() => saveSelection(true)}>
+            {busy ? 'Saving…' : selectedCount ? 'Continue to credentials' : 'Continue without integrations'} <ArrowRight size={16} />
+          </button>
+        </> : <>
+          <button className="btn btn--ghost" onClick={() => setChoosing(true)} disabled={busy}><ArrowLeft size={16} /> Back</button>
+          <button className="btn btn--ghost" onClick={onNext} disabled={busy}>Finish later</button>
           <button className="btn btn--primary" disabled={busy} onClick={save}>
             {busy ? 'Saving…' : filled ? 'Save and continue' : 'Continue'} <ArrowRight size={16} />
           </button>
         </>
       }
     >
-      <p className="setup__lede">
-        Planning Center brings in your service plans. Slack is where the booth asks for help.
-      </p>
-
-      {groups === null && <p className="settings__muted">Loading…</p>}
-      {groups?.map((group) => (
+      {choosing ? <>
+        <p className="setup__lede">Select the tools your church uses today. Your selection controls which widgets and configuration options are available.</p>
+        {!loaded && <p className="settings__muted">Loading integrations…</p>}
+        <div className="setup__integration-groups">
+          {SETUP_INTEGRATION_GROUPS.map((group) => (
+            <section key={group.label} className="setup__integration-group">
+              <h2>{group.label}</h2>
+              <div className="setup__integration-choices">
+                {group.integrations.map((integration) => (
+                  <label className="setup__integration-choice" key={integration}>
+                    <IntegrationBrand integration={integration} label />
+                    <input
+                      type="checkbox"
+                      checked={selected[integration] === true}
+                      disabled={!loaded || busy}
+                      onChange={(event) => setSelected((current) => ({ ...current, [integration]: event.target.checked }))}
+                    />
+                  </label>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </> : <>
+      {groups === null && <p className="settings__muted">Loading credentials…</p>}
+      {selectedCredentialGroups.length === 0 && groups !== null && (
+        <p className="setup__lede">None of your selected integrations need credentials during setup. Continue when you are ready; campus-specific services can be configured from Admin later.</p>
+      )}
+      {selectedCredentialGroups.map((group) => (
         <div key={group.id} className="setup__integration">
           <h2 className="setup__intname">
             {group.label}
@@ -665,20 +739,28 @@ function IntegrationsStep({ onBack, onNext }: { onBack: () => void; onNext: () =
           {group.fields.filter((f) => !f.optional).map((f) => (
             <label key={f.path} className="lfield">
               <span>{f.label}</span>
-              <input
+              {f.secret ? <PasswordInput
                 className="field"
-                type={f.secret ? 'password' : 'text'}
                 autoComplete="new-password"
                 placeholder={f.set ? '••••••••' : ''}
                 disabled={f.env || busy}
                 value={draft[f.path] ?? ''}
                 onChange={(e) => setDraft((d) => ({ ...d, [f.path]: e.target.value }))}
-              />
+              /> : <input
+                className="field"
+                type="text"
+                autoComplete="new-password"
+                placeholder={f.set ? '••••••••' : ''}
+                disabled={f.env || busy}
+                value={draft[f.path] ?? ''}
+                onChange={(e) => setDraft((d) => ({ ...d, [f.path]: e.target.value }))}
+              />}
               {f.env && <small className="settings__muted">Set by an environment variable — edit it there.</small>}
             </label>
           ))}
         </div>
       ))}
+      </>}
       <Err text={err} />
     </Step>
   );

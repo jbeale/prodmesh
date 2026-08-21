@@ -9,8 +9,9 @@ describe('analysis source presentation', () => {
     expect(analysisIntegration('open-sound-meter')).toBe('open-sound-meter');
   });
 
-  it('keeps the generic fallback for rooms without an analysis source', () => {
-    expect(analysisWidgetTitle('loudness', null)).toBeNull();
+  it('keeps audio widgets available before an analysis source is chosen', () => {
+    expect(analysisWidgetTitle('loudness', null)).toBe('Audio Decibel Meter');
+    expect(analysisWidgetTitle('loudness-trend', null)).toBe('Audio Trend');
     expect(analysisIntegration(null)).toBe('analysis');
   });
 });

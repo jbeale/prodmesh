@@ -20,12 +20,12 @@ export type IntegrationId =
   | 'youtube' | 'slack' | 'companion' | 'analysis' | 'captions'
   | 'prodmesh-rta' | 'smaart' | 'open-sound-meter' | 'prodcom';
 
-export const integrationInfo: Record<IntegrationId, { name: string; mark: string; logo?: string }> = {
+export const integrationInfo: Record<IntegrationId, { name: string; mark: string; logo?: string; beta?: boolean }> = {
   prodmesh: { name: 'ProdMesh', mark: 'PM', logo: prodMeshLogo },
   propresenter: { name: 'ProPresenter', mark: 'P', logo: proPresenterLogo },
   'planning-center': { name: 'Planning Center', mark: 'PC', logo: planningCenterLogo },
   restream: { name: 'Restream', mark: 'R', logo: restreamLogo },
-  resi: { name: 'Resi', mark: 'R', logo: resiLogo },
+  resi: { name: 'Resi', mark: 'R', logo: resiLogo, beta: true },
   youtube: { name: 'YouTube', mark: '▶', logo: youTubeLogo },
   slack: { name: 'Slack', mark: 'S', logo: slackLogo },
   companion: { name: 'Bitfocus Companion', mark: 'C', logo: companionLogo },
@@ -47,10 +47,15 @@ export function IntegrationBrand({ integration, label = false }: { integration: 
         {info.logo ? <img src={info.logo} alt="" /> : info.mark}
       </span>
       {label && <span className="integration-brand__label">{info.name}</span>}
+      {label && info.beta && <span className="integration-brand__beta">Beta</span>}
     </span>
   );
 }
 
+export function IntegrationBeta({ integration }: { integration: IntegrationId }) {
+  return integrationInfo[integration].beta ? <span className="integration-brand__beta">Beta</span> : null;
+}
+
 export function IntegrationTitle({ integration, children }: { integration: IntegrationId; children: ReactNode }) {
-  return <span className="integration-title"><IntegrationBrand integration={integration} />{children}</span>;
+  return <span className="integration-title"><IntegrationBrand integration={integration} />{children}<IntegrationBeta integration={integration} /></span>;
 }

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { PackageOpen } from 'lucide-react';
 import { widgetRegistry, isWidgetType } from '../widgets/registry';
 import type { WidgetConfig, WidgetType } from '../widgets/types';
-import { IntegrationBrand } from '../components/IntegrationBrand';
+import { IntegrationBeta, IntegrationBrand } from '../components/IntegrationBrand';
 import { getRoom, getRoomConnectivity, type ViewPlacement } from '../api';
 import { useQuery } from '../lib/useQuery';
 import { analysisIntegration, analysisWidgetTitle } from '../lib/analysisSource';
@@ -75,7 +75,7 @@ export function PlacedWidget({
       {!chrome && def && (
         <header className="viewcell__widget-head">
           <IntegrationBrand integration={integration} />
-          <span>{title}</span>
+          <span>{title}</span><IntegrationBeta integration={integration} />
         </header>
       )}
       {/* A widget with nothing to say renders null — LoudnessWidget with no

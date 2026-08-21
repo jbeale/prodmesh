@@ -17,6 +17,7 @@ const api = vi.hoisted(() => ({
   clearLogo: vi.fn(),
   getSecrets: vi.fn(),
   saveSecrets: vi.fn(),
+  setIntegrationEnabled: vi.fn(),
   completeSetup: vi.fn(),
 }));
 
@@ -50,6 +51,7 @@ function freshInstall() {
   api.loginAdmin.mockResolvedValue(true);
   api.saveConfig.mockImplementation(async (c: Church) => c);
   api.getSecrets.mockResolvedValue({ secrets: [] });
+  api.setIntegrationEnabled.mockResolvedValue({ enabled: {} });
   api.completeSetup.mockResolvedValue({ needed: false, completedAt: 1, adminPinSet: true, hasCampus: true });
 }
 
@@ -85,8 +87,10 @@ describe('first-run setup', () => {
     expect(saved.sites).toHaveLength(1);
     expect(saved.sites[0].auditoriums.map((a) => a.name)).toEqual(['Auditorium']);
 
-    // 4 · Integrations are skippable
-    await user.click(await screen.findByRole('button', { name: /Skip for now/ }));
+    // 4 · Integrations are optional from the first selection screen.
+    const skip = await screen.findByRole('button', { name: /Skip for now/ });
+    await waitFor(() => expect(skip).toBeEnabled());
+    await user.click(skip);
 
     // Done
     await user.click(await screen.findByRole('button', { name: /Go to the dashboard/ }));
@@ -119,7 +123,7 @@ describe('first-run setup', () => {
 
     renderSetup();
 
-    expect(await screen.findByText('Connect your services')).toBeInTheDocument();
+    expect(await screen.findByText('Choose your integrations')).toBeInTheDocument();
     expect(screen.getByText('Step 4 of 4')).toBeInTheDocument();
   });
 

@@ -1049,12 +1049,16 @@
 .integration__state--on { color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
 .integration__state--off { color: var(--text-faint); background: rgba(127, 127, 127, 0.14); }
 
+.integration-groups { display: grid; gap: 20px; margin-top: 18px; }
+.integration-group + .integration-group { padding-top: 18px; border-top: 1px solid var(--border); }
+.integration-group__head h3 { margin: 0; font-size: 0.86rem; }
+.integration-group__head p { margin: 3px 0 0; color: var(--text-dim); font-size: 0.8rem; }
 .integration-switches {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 10px;
   width: 100%;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .integration-switch {
@@ -1126,6 +1130,41 @@
   box-shadow: none !important;
   background: transparent;
 }
+.integration-brand__beta {
+  padding: 2px 5px;
+  border: 1px solid color-mix(in srgb, var(--warn) 50%, var(--border));
+  border-radius: 999px;
+  color: var(--warn);
+  background: color-mix(in srgb, var(--warn) 10%, transparent);
+  font-size: .62rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.password-input {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+}
+.password-input > .field { width: 100%; padding-right: 2.45rem; }
+.password-input__toggle {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  right: 3px;
+  top: 3px;
+  bottom: 3px;
+  width: 2rem;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+}
+.password-input__toggle:hover { color: var(--text); background: var(--panel-raised); }
+.password-input__toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .integration-brand--propresenter .integration-brand__mark { background: #3169b5; }
 .integration-brand--planning-center .integration-brand__mark { background: #ef6b3e; }
 .integration-brand--restream .integration-brand__mark { background: #5968f2; }

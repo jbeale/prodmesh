@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, CircleUser, MonitorCog, RefreshCw, Trash2 } from 'l
 import { Checkbox } from '../components/Checkbox';
 import { HelpTip } from '../components/HelpTip';
 import { PersonPicker } from '../components/PersonPicker';
+import { PasswordInput } from '../components/PasswordInput';
 import { SelectField } from '../components/SelectField';
 import { ColorInput } from '../components/form/ColorInput';
 import { EditorSection } from '../components/form/EditorSection';
@@ -150,9 +151,9 @@ function SetupForm({ onDone }: { onDone: () => void }) {
     <section className="panel">
       <h2 className="panel__title">Create Admin PIN</h2>
       <p className="settings__muted">This protects Settings and system updates.</p>
-      <input className="field" type="password" inputMode="numeric" placeholder="New admin PIN"
+      <PasswordInput className="field" inputMode="numeric" placeholder="New admin PIN"
         value={pin} onChange={(e) => setPin(e.target.value)} />
-      <input className="field" type="password" inputMode="numeric" placeholder="Confirm PIN"
+      <PasswordInput className="field" inputMode="numeric" placeholder="Confirm PIN"
         value={confirm} onChange={(e) => setConfirm(e.target.value)} />
       {err && <p className="settings__error">{err}</p>}
       <button className="btn btn--primary" onClick={submit}>Create PIN</button>
@@ -174,7 +175,7 @@ function LoginForm({ onDone }: { onDone: () => void }) {
   return (
     <section className="panel">
       <h2 className="panel__title">Enter Admin PIN</h2>
-      <input className="field" type="password" inputMode="numeric" placeholder="Admin PIN"
+      <PasswordInput className="field" inputMode="numeric" placeholder="Admin PIN"
         value={pin} onChange={(e) => setPin(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()} autoFocus />
       {err && <p className="settings__error">{err}</p>}
@@ -269,7 +270,7 @@ export function UserManagementPanel() {
           <h3>Create user</h3>
           <input className="field" placeholder="Display name" value={user.displayName} onChange={(e) => setUser({ ...user, displayName: e.target.value })} />
           <input className="field" placeholder="Username" autoCapitalize="none" value={user.username} onChange={(e) => setUser({ ...user, username: e.target.value })} />
-          <input className="field" placeholder="PIN" type="password" inputMode="numeric" value={user.pin} onChange={(e) => setUser({ ...user, pin: e.target.value })} />
+          <PasswordInput className="field" placeholder="PIN" inputMode="numeric" value={user.pin} onChange={(e) => setUser({ ...user, pin: e.target.value })} />
           <PersonPicker value={user.planningCenterPersonId} onChange={(personId) => setUser({ ...user, planningCenterPersonId: personId })} />
           <div className="users__checks">
             {directory.groups.map((group) => (
@@ -748,7 +749,7 @@ function SecurityPanel() {
           <div className="settings__muted">Protects Settings + system updates.</div>
         </div>
         <div className="panel__controls">
-          <input className="field field--sm" type="password" inputMode="numeric" placeholder="New admin PIN"
+          <PasswordInput className="field field--sm" inputMode="numeric" placeholder="New admin PIN"
             value={adminPin} onChange={(e) => setAdminPin(e.target.value)} />
           <button className="btn" onClick={saveAdmin}>Update</button>
         </div>
@@ -761,7 +762,7 @@ function SecurityPanel() {
           <div className="settings__muted">Unlocks locked mode changes during protected windows.</div>
         </div>
         <div className="panel__controls">
-          <input className="field field--sm" type="password" inputMode="numeric" placeholder="New override PIN"
+          <PasswordInput className="field field--sm" inputMode="numeric" placeholder="New override PIN"
             value={overridePin} onChange={(e) => setOverridePin(e.target.value)} />
           <button className="btn" onClick={saveOverride}>Update</button>
           {overrideSet && <button className="btn btn--ghost" onClick={clearOverride}>Clear</button>}
@@ -776,9 +777,32 @@ const secretGroupIntegration = (id: string): IntegrationId => ({
   planningCenter: 'planning-center', slack: 'slack', youtube: 'youtube', restream: 'restream', resi: 'resi',
 }[id] as IntegrationId | undefined) ?? 'prodmesh';
 
-const MANAGED_INTEGRATIONS: IntegrationId[] = [
-  'planning-center', 'propresenter', 'resi', 'restream', 'youtube', 'slack',
-  'companion', 'prodmesh-rta', 'smaart', 'open-sound-meter', 'captions', 'prodcom',
+const INTEGRATION_GROUPS: Array<{ title: string; description: string; integrations: IntegrationId[] }> = [
+  {
+    title: 'Planning & Scheduling',
+    description: 'Build services, schedules, teams, and run-of-show information.',
+    integrations: ['planning-center'],
+  },
+  {
+    title: 'Presentation & Show Control',
+    description: 'Control presentations and connect room automation.',
+    integrations: ['propresenter', 'companion'],
+  },
+  {
+    title: 'Audio',
+    description: 'Measure live SPL and monitor loudness over time.',
+    integrations: ['open-sound-meter', 'smaart', 'prodmesh-rta'],
+  },
+  {
+    title: 'Video & Streaming',
+    description: 'Monitor broadcasts, destinations, and audience activity.',
+    integrations: ['youtube', 'restream', 'resi'],
+  },
+  {
+    title: 'Communication',
+    description: 'Keep the booth and team connected with captions and messaging.',
+    integrations: ['slack', 'captions', 'prodcom'],
+  },
 ];
 
 function IntegrationEnablePanel() {
@@ -806,15 +830,22 @@ function IntegrationEnablePanel() {
     <p className="section-label">Availability</p>
     <h2 className="panel__title">Enabled integrations</h2>
     <p className="settings__muted">Turn off integrations your organization does not use. Their stored credentials remain intact, but their widgets are unavailable on new dashboards until re-enabled.</p>
-    <div className="integration-switches">
-      {MANAGED_INTEGRATIONS.map((id) => <div className="integration-switch" key={id}>
-        <IntegrationBrand integration={id} />
-        <span>{integrationInfo[id].name}</span>
-        <label className="integration-switch__toggle">
-          <input type="checkbox" checked={enabled?.[id] ?? true} disabled={!enabled || saving === id} onChange={() => toggle(id)} />
-          <span>{enabled?.[id] === false ? 'Disabled' : saving === id ? 'Saving…' : 'Enabled'}</span>
-        </label>
-      </div>)}
+    <div className="integration-groups">
+      {INTEGRATION_GROUPS.map((group) => <section className="integration-group" key={group.title}>
+        <div className="integration-group__head">
+          <h3>{group.title}</h3>
+          <p>{group.description}</p>
+        </div>
+        <div className="integration-switches">
+          {group.integrations.map((id) => <div className="integration-switch" key={id}>
+            <IntegrationBrand integration={id} label />
+            <label className="integration-switch__toggle">
+              <input type="checkbox" checked={enabled?.[id] ?? true} disabled={!enabled || saving === id} onChange={() => toggle(id)} />
+              <span>{enabled?.[id] === false ? 'Disabled' : saving === id ? 'Saving…' : 'Enabled'}</span>
+            </label>
+          </div>)}
+        </div>
+      </section>)}
     </div>
     <Msg msg={msg} />
   </section>;
@@ -855,7 +886,7 @@ function SecretsPanel() {
         {groups.filter((group) => enabled?.[secretGroupIntegration(group.id)] !== false).map((group) => (
           <div key={group.id} className="integration">
             <div className="integration__head">
-              <span className="integration__name"><IntegrationBrand integration={secretGroupIntegration(group.id)} />{group.label}</span>
+              <span className="integration__name"><IntegrationBrand integration={secretGroupIntegration(group.id)} />{group.label}{integrationInfo[secretGroupIntegration(group.id)].beta && <span className="integration-brand__beta">Beta</span>}</span>
               <span className={`integration__state integration__state--${group.configured ? 'on' : 'off'}`}>
                 {group.configured ? 'Configured' : 'Not configured'}
               </span>
@@ -894,6 +925,7 @@ function SecretsDialog({
   const [copiedRestreamUrl, setCopiedRestreamUrl] = useState(false);
   const [connectingRestream, setConnectingRestream] = useState(false);
   const [checkingResi, setCheckingResi] = useState(false);
+  const [checkingPlanningCenter, setCheckingPlanningCenter] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState<Feedback>(null);
 
   useEffect(() => {
@@ -918,7 +950,7 @@ function SecretsDialog({
       if (group.id === 'planningCenter') {
         const check = await checkIntegrations().catch(() => null);
         if (check?.planningCenter === false) {
-          setMsg(fail('Saved, but Planning Center rejected these credentials. Double-check the Application ID and Secret.'));
+          setMsg(fail(`Saved, but Planning Center could not verify these credentials${check.reason ? ` (${check.reason})` : ''}.`));
           setBusy(false);
           return;
         }
@@ -943,15 +975,22 @@ function SecretsDialog({
               {f.label}
               {f.set && <span className="secretdlg__kept">leave blank to keep</span>}
             </span>
-            <input
+            {f.secret ? <PasswordInput
               className="field"
-              type={f.secret ? 'password' : 'text'}
               autoComplete="new-password"
               placeholder={f.set ? (f.secret ? '••••••••' : f.value ?? '') : 'not set'}
               value={draft[f.path] ?? ''}
               disabled={f.env || busy}
               onChange={(e) => setDraft((d) => ({ ...d, [f.path]: e.target.value }))}
-            />
+            /> : <input
+              className="field"
+              type="text"
+              autoComplete="new-password"
+              placeholder={f.set ? f.value ?? '' : 'not set'}
+              value={draft[f.path] ?? ''}
+              disabled={f.env || busy}
+              onChange={(e) => setDraft((d) => ({ ...d, [f.path]: e.target.value }))}
+            />}
             {f.note && <small className="settings__muted">{f.note}</small>}
             {f.env && <small className="settings__muted">Set by an environment variable — edit it there.</small>}
           </label>
@@ -981,6 +1020,12 @@ function SecretsDialog({
             setConnectionMessage(null); setConnectingRestream(true);
             connectRestream().catch((err) => setConnectionMessage(fail(err))).finally(() => setConnectingRestream(false));
           }}>{connectingRestream ? 'Connecting…' : 'Connect account'}</button>}
+          {group.id === 'planningCenter' && <button className="btn" disabled={!group.configured || checkingPlanningCenter} onClick={() => {
+            setConnectionMessage(null); setCheckingPlanningCenter(true);
+            checkIntegrations().then((result) => setConnectionMessage(
+              result.planningCenter ? ok('Connected — Planning Center credentials are valid.') : fail(result.reason ?? 'Planning Center could not verify the saved credentials.'),
+            )).catch((err) => setConnectionMessage(fail(err))).finally(() => setCheckingPlanningCenter(false));
+          }}>{checkingPlanningCenter ? 'Testing…' : 'Test connection'}</button>}
           {group.id === 'resi' && <button className="btn" disabled={!group.configured || checkingResi} onClick={() => {
             setConnectionMessage(null); setCheckingResi(true);
             checkResiConnection().then((state) => setConnectionMessage(ok(state.live ? 'Connected — Resi reports a live broadcast.' : 'Connected — Resi reports no active broadcast.'))).catch((err) => setConnectionMessage(fail(err))).finally(() => setCheckingResi(false));
@@ -2129,7 +2174,7 @@ function CaptionsEditor({ roomId, initial }: { roomId: string; initial: Captions
           </Field>
           {draft.source === 'prodcom' && (
             <Field label={draft.hasKey ? 'API key (set)' : 'API key'}>
-              <input className="field" type="password" autoComplete="new-password"
+              <PasswordInput className="field" autoComplete="new-password"
                 placeholder={draft.hasKey ? 'unchanged' : 'only if PSK is enabled'}
                 value={draft.key} onChange={(e) => f.patch({ key: e.target.value })} />
             </Field>
@@ -2295,7 +2340,7 @@ function AnalysisEditor({ roomId, initial, status }: { roomId: string; initial: 
       {draft.source === 'smaart' && (
         <FormRow>
             <Field label="API password">
-              <input className="field" type="password" autoComplete="off"
+              <PasswordInput className="field" autoComplete="off"
                 placeholder={hasPassword ? 'unchanged' : 'none'} value={draft.password}
                 onChange={(e) => f.patch({ password: e.target.value })} />
             </Field>

@@ -399,7 +399,7 @@ function viewWidgetConfig(config) {
   if (['A', 'B', 'C', 'Z'].includes(config.weighting)) out.weighting = config.weighting;
   if (['Fast', 'Slow'].includes(config.response)) out.response = config.response;
   if (['current', 'next', 'both'].includes(config.slides)) out.slides = config.slides;
-  for (const key of ['autoplay', 'muted', 'playerControls']) {
+  for (const key of ['autoplay', 'muted', 'playerControls', 'destinationLinks', 'videoPreview']) {
     if (typeof config[key] === 'boolean') out[key] = config[key];
   }
   if (['16:9', '4:3', '1:1'].includes(config.aspectRatio)) out.aspectRatio = config.aspectRatio;

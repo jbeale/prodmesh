@@ -20,6 +20,7 @@ import { ServicePanel } from '../components/ServicePanel';
 import { Accordion } from '../components/Accordion';
 import { Tile } from '../components/Tile';
 import { useChurch } from '../layout/church';
+import { PasswordInput } from '../components/PasswordInput';
 
 // When a show is live in this room, say so LOUDLY: which service, since when,
 // and one tap to the live Run of Show. (The Home tile already shows LIVE —
@@ -281,10 +282,9 @@ export function RoomStatus() {
                 <label className="confirm__lock-label" htmlFor="override-pin">
                   <Lock size={13} /> This change is locked ({protection!.label}). Enter override PIN:
                 </label>
-                <input
+                <PasswordInput
                   id="override-pin"
                   className="confirm__pin"
-                  type="password"
                   inputMode="numeric"
                   autoComplete="off"
                   value={pin}

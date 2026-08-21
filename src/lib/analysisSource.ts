@@ -16,5 +16,8 @@ export function analysisWidgetTitle(type: WidgetType, source: AnalysisSource | n
   if (source === 'smaart') return `Smaart ${suffix}`;
   if (source === 'rta') return `ProdMesh RTA ${suffix}`;
   if (source === 'open-sound-meter') return `Open Sound Meter ${suffix}`;
-  return null;
+  // Keep the audio widgets discoverable before a campus selects a provider.
+  // The picker blocks their addition until then, but hiding them entirely made
+  // it look as if the Audio integration had no widgets at all.
+  return `Audio ${suffix}`;
 }

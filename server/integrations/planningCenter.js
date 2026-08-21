@@ -23,6 +23,18 @@ export function isConfigured() {
   return Boolean(getSecret('planningCenter.appId') && getSecret('planningCenter.secret'));
 }
 
+/**
+ * Verify only the credential pair, without assuming this install already has a
+ * room configured with a Services type. The former check fetched plans for the
+ * first room type, so a perfectly valid new account was reported as rejected
+ * whenever that type was stale, unavailable to the account, or simply absent.
+ */
+export async function checkCredentials() {
+  if (!isConfigured()) return false;
+  await pcGet('/service_types?per_page=1');
+  return true;
+}
+
 // ── tiny TTL cache ────────────────────────────────────────────────────────────
 const cache = new Map(); // key → { expires, value }
 const CACHE_MAX = 200;

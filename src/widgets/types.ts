@@ -46,6 +46,10 @@ export interface WidgetConfig {
   autoplay?: boolean;
   muted?: boolean;
   playerControls?: boolean;
+  /** Show public Restream destination links beside each audience count. */
+  destinationLinks?: boolean;
+  /** Render an active YouTube destination inside the Restream widget. */
+  videoPreview?: boolean;
   aspectRatio?: '16:9' | '4:3' | '1:1';
   slides?: 'current' | 'next' | 'both';
   /** Runtime-only identity injected by ViewCanvas; never persisted. */
